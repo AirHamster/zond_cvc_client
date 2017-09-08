@@ -68,7 +68,7 @@ public:
     void run() Q_DECL_OVERRIDE;
 
 signals:
-    void response(const QString &s, QString &portname);
+    void response1(const QString &s);
     void error(const QString &s);
     void timeout(const QString &s);
 

@@ -56,7 +56,7 @@ void MasterThread::run()
     mutex.unlock();
     //! [5] //! [6]
     QSerialPort serial;
-
+serial.setBaudRate(115200);
     while (!quit) {
         //![6] //! [7]
         if (currentPortNameChanged) {
@@ -83,7 +83,7 @@ void MasterThread::run()
 
                 QString response(responseData);
                 //! [12]
-                emit this->response(response, currentPortName);
+                emit response1(response);
                 //! [10] //! [11] //! [12]
             } else {
                 emit timeout(tr("Wait read response timeout %1")

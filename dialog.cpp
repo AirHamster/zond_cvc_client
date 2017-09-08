@@ -87,9 +87,10 @@ Dialog::Dialog()
 
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-    connect(&thread, &MasterThread::response, this, &Dialog::transaction);
+    //connect(&thread, &MasterThread::response, this, &Dialog::transaction);
     connect(&thread, &MasterThread::error, this, &Dialog::processError);
     connect(&thread, &MasterThread::timeout, this, &Dialog::processTimeout);
+    connect(&thread, &MasterThread::response1, this, &Dialog::responseProcessing);
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
     mainLayout->addWidget(horizontalGroupBox);
@@ -111,16 +112,14 @@ void Dialog::createMenu()
 
 void Dialog::createHorizontalGroupBox()
 {
+
     horizontalGroupBox = new QGroupBox("Соединение");
     QHBoxLayout *layout = new QHBoxLayout;
     connectStatus = new QLabel("Нет соединения");
     searchDeviceButton = new QPushButton("Поиск");
-   // searchDeviceButton->setMinimumWidth(searchDeviceButton->baseWidth());
-   // searchDeviceButton->setMaximumWidth(searchDeviceButton->baseWidth());
     connect(searchDeviceButton, SIGNAL (released()), this, SLOT (searchDevice()));
     layout->addWidget(searchDeviceButton);
     layout->addWidget(connectStatus);
-
     horizontalGroupBox->setLayout(layout);
 }
 
@@ -140,11 +139,6 @@ void Dialog::createFormGroupBox()
 
     layout->addRow(new QLabel("Шаг измерений, V:"), vol_step);
     layout->addWidget(filePathLine);
-   // layout->addWidget(requestLineEdit);
-
-     //layout->addRow(new QLabel(tr("Port:")), serialPortComboBox);
-   // serialPortComboBox->setFocus();
-    //layout->addWidget(serialPortComboBox);
     layout->addRow(new QLabel("Путь к файлу:"), filePathLine);
 
     savepath = new QPushButton("Задать имя...");
@@ -209,15 +203,6 @@ void Dialog::transaction()
     thread.transaction(serialPortComboBox->currentText(),1000,requestLineEdit->text());
 }
 
-void Dialog::showResponse(const QString &s)
-{
-    setControlsEnabled(true);
-    //trafficLabel->setText(tr("Traffic, transaction #%1:"
-    //                         "\n\r-request: %2"
-     //                        "\n\r-response: %3")
-       //                   .arg(++transactionCount).arg(requestLineEdit->text()).arg(s));
-}
-
 void Dialog::processError(const QString &s)
 {
     setControlsEnabled(true);
@@ -245,12 +230,15 @@ void Dialog::setControlsEnabled(bool enable)
     //waitResponseSpinBox->setEnabled(enable);
     //requestLineEdit->setEnabled(enable);
 }
-void Dialog::responseProcessing(const QString &s, QString &portname)
+//void Dialog::responseProcessing(const QString &s, QString &portname)
+void Dialog::responseProcessing(const QString &s)
 {
-    if (s.toStdString() == "Z"){
+    if (s.toStdString() == "z\n"){
         zondDevice->setDevFound(true);
-        zondDevice->setPortName(portname);
-        connectStatus->setText(tr("Прибор обнаружен на порту %1").arg(portname));
+   //     zondDevice->setPortName(portname);
+        //connectStatus->setText(tr("Прибор обнаружен на порту %1").arg(portname));
+        connectStatus->setText("Прибор обнаружен");
+        statusLabel->setText("Готово к работе");
         runButton->setEnabled(true);
         return;
     }else{
@@ -277,8 +265,9 @@ void Dialog::searchDevice()
         //avalibleCOMs = new QStringList;
         avalibleCOMs = QStringList(cbModel->stringList());
          //thread.transaction(avalibleCOMs.takeFirst(),1000, "Z");
-         thread.transaction("COM3",1000, "Z\n");
-         connect(&thread, &MasterThread::response, this, &Dialog::responseProcessing);
+       // connect(&thread, &MasterThread::response, this, &Dialog::responseProcessing);
+        thread.transaction("COM4",5000, "Z?\n");
+
     }
 }
 
@@ -286,11 +275,11 @@ void Dialog::getValues()
 {
     vol_step->setEnabled(false);
     savepath->setEnabled(false);
-    connect(&thread, &MasterThread::response, this, &Dialog::saveToFile);
+    //connect(&thread, &MasterThread::response1, this, &Dialog::saveToFile);
     currentVoltage += vol_step->value();
     if (currentVoltage <= maxVoltage)
     {
-        thread.transaction(zondDevice->getPortName(),1000, "Z");
+        thread.transaction(zondDevice->getPortName(),1000, "Z?");
     }else
     {
         currentVoltage = minVoltage;

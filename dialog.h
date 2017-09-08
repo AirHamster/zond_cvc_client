@@ -137,13 +137,13 @@ private:
     MasterThread thread;
     Device *zondDevice;
 
-public slots:
+private slots:
 void handleSaveButton();
 void transaction();
-void showResponse(const QString &s);
+//void showResponse(const QString &s);
 void processError(const QString &s);
 void processTimeout(const QString &s);
-void responseProcessing(const QString &s, QString &portname);
+void responseProcessing(const QString &s);
 void searchDevice();
 void getValues();
 void saveToFile(const QString &s, QString &portname);
