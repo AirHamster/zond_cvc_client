@@ -56,158 +56,115 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QString>
 #include <QTextStream>
+#include <QComboBox>
+#include <QTime>
+#include <QDate>
+#include <QStringListModel>
 #include "dialog.h"
 #include <iostream>
 QTextStream cout(stdout);
 QTextStream cin(stdin);
 //using namespace std;
+const double minVoltage = -8;
+const double maxVoltage = 50;
+double currentVoltage = minVoltage;
+
 
 //! [0]
 Dialog::Dialog()
 {
-   // createMenu();
     createHorizontalGroupBox();
-    //createGridGroupBox();
     createFormGroupBox();
     createHorizontalGroupBox2();
-//! [0]
-
-//! [1]
-    //bigEditor = new QTextEdit;
-    //bigEditor->setPlainText(tr("This widget takes up all the remaining space "
-     //                          "in the top-level layout."));
+    zondDevice = new Device;
+    const auto infos = QSerialPortInfo::availablePorts();
+    serialPortComboBox = new QComboBox;
+    for (const QSerialPortInfo &info : infos)
+        serialPortComboBox->addItem(info.portName());
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                      | QDialogButtonBox::Cancel);
 
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-//! [1]
-
-//! [2]
+    connect(&thread, &MasterThread::response, this, &Dialog::transaction);
+    connect(&thread, &MasterThread::error, this, &Dialog::processError);
+    connect(&thread, &MasterThread::timeout, this, &Dialog::processTimeout);
     QVBoxLayout *mainLayout = new QVBoxLayout;
-//! [2] //! [3]
-   // mainLayout->setMenuBar(menuBar);
-//! [3] //! [4]
+
     mainLayout->addWidget(horizontalGroupBox);
-    //mainLayout->addWidget(gridGroupBox);
     mainLayout->addWidget(formGroupBox);
     mainLayout->addWidget(horizontalGroupBox2);
-    mainLayout->addWidget(bigEditor);
     mainLayout->addWidget(buttonBox);
-//! [4] //! [5]
     setLayout(mainLayout);
-
-    setWindowTitle(tr("Zond CVC Meter Client"));
+    setWindowTitle("Zond CVC Meter Client");
 }
-//! [5]
 
-//! [6]
 void Dialog::createMenu()
 {
     menuBar = new QMenuBar;
-
-    fileMenu = new QMenu(tr("&File"), this);
-    exitAction = fileMenu->addAction(tr("E&xit"));
+    fileMenu = new QMenu("&File", this);
+    exitAction = fileMenu->addAction("E&xit");
     menuBar->addMenu(fileMenu);
-
     connect(exitAction, SIGNAL(triggered()), this, SLOT(accept()));
 }
-//! [6]
 
-//! [7]
 void Dialog::createHorizontalGroupBox()
 {
-    horizontalGroupBox = new QGroupBox(tr("Соединение"));
+    horizontalGroupBox = new QGroupBox("Соединение");
     QHBoxLayout *layout = new QHBoxLayout;
-
-   /* for (int i = 0; i < NumButtons; ++i) {
-        buttons[i] = new QPushButton(tr("Button %1").arg(i + 1));
-        layout->addWidget(buttons[i]);
-    }
-    */
-    QLabel *label = new QLabel(tr("Попытка подключения к устройству...").arg(1));
-
-    buttons = new QPushButton(tr("Button").arg(1));
-    layout->addWidget(buttons);
-    layout->addWidget(label);
+    connectStatus = new QLabel("Нет соединения");
+    searchDeviceButton = new QPushButton("Поиск");
+   // searchDeviceButton->setMinimumWidth(searchDeviceButton->baseWidth());
+   // searchDeviceButton->setMaximumWidth(searchDeviceButton->baseWidth());
+    connect(searchDeviceButton, SIGNAL (released()), this, SLOT (searchDevice()));
+    layout->addWidget(searchDeviceButton);
+    layout->addWidget(connectStatus);
 
     horizontalGroupBox->setLayout(layout);
 }
-//! [7]
 
-//! [8]
-void Dialog::createGridGroupBox()
-{
-    gridGroupBox = new QGroupBox(tr("Настройки"));
-//! [8]
-    QGridLayout *layout = new QGridLayout;
-
-//! [9]
-    for (int i = 0; i < NumGridRows; ++i) {
-        labels[i] = new QLabel(tr("Line %1:").arg(i + 1));
-        lineEdits[i] = new QLineEdit;
-        layout->addWidget(labels[i], i + 1, 0);
-        layout->addWidget(lineEdits[i], i + 1, 1);
-    }
-
-//! [9] //! [10]
-  //  smallEditor = new QTextEdit;
-  //  smallEditor->setPlainText(tr("This widget takes up about two thirds of the "
-  //                               "grid layout."));
-  //  layout->addWidget(smallEditor, 0, 2, 4, 1);
-//! [10]
-
-//! [11]
-    layout->setColumnStretch(1, 10);
-    layout->setColumnStretch(2, 20);
-    gridGroupBox->setLayout(layout);
-}
-//! [11]
-
-//! [12]
 void Dialog::createFormGroupBox()
 {
-    formGroupBox = new QGroupBox(tr("Настройки"));
+    formGroupBox = new QGroupBox("Настройки");
     QFormLayout *layout = new QFormLayout;
- //   layout->addRow(new QLabel(tr("Line 2, long text:")), new QComboBox);
-    QDoubleSpinBox *vol_step = new QDoubleSpinBox;
+    requestLineEdit = new QLineEdit("Who are you?");
+    vol_step = new QDoubleSpinBox;
     vol_step->setMinimum(0.25);
     vol_step->setMaximum(2);
     vol_step->setSingleStep(0.25);
-    layout->addRow(new QLabel(tr("Шаг измерений, V:")), vol_step);
+    vol_step->setValue(1.0);
 
-    QLineEdit *file_path = new QLineEdit();
-    file_path->setReadOnly(true);
+    filePathLine = new QLineEdit();
+    filePathLine->setReadOnly(true);
 
-    layout->addRow(new QLabel(tr("Файл с результатами:")), file_path);
+    layout->addRow(new QLabel("Шаг измерений, V:"), vol_step);
+    layout->addWidget(filePathLine);
+   // layout->addWidget(requestLineEdit);
 
-    QPushButton *savepath = new QPushButton(tr("Задать имя...").arg(1));
+     //layout->addRow(new QLabel(tr("Port:")), serialPortComboBox);
+   // serialPortComboBox->setFocus();
+    //layout->addWidget(serialPortComboBox);
+    layout->addRow(new QLabel("Путь к файлу:"), filePathLine);
 
-
-
+    savepath = new QPushButton("Задать имя...");
     connect(savepath, SIGNAL (released()), this, SLOT (handleSaveButton()));
     layout->addWidget(savepath);
     formGroupBox->setLayout(layout);
 }
-//! [12]
 
-//! [13]
 void Dialog::createHorizontalGroupBox2()
 {
     horizontalGroupBox2 = new QGroupBox();
     QHBoxLayout *layout2 = new QHBoxLayout;
+    //layout2->addWidget(serialPortComboBox);
+    statusLabel = new QLabel("Нет подключения");
 
-   /* for (int i = 0; i < NumButtons; ++i) {
-        buttons[i] = new QPushButton(tr("Button %1").arg(i + 1));
-        layout->addWidget(buttons[i]);
-    }
-    */
-    QLabel *label2 = new QLabel(tr("Bla bla bla").arg(1));
-
-    QPushButton *buttons2 = new QPushButton(tr("Старт").arg(1));
-    layout2->addWidget(buttons2);
-    layout2->addWidget(label2);
+    runButton = new QPushButton("Старт");
+    runButton->setEnabled(false);
+    connect(runButton, &QPushButton::clicked, this, &Dialog::transaction);
+    layout2->addWidget(runButton);
+    layout2->addWidget(statusLabel);
 
     horizontalGroupBox2->setLayout(layout2);
 }
@@ -220,19 +177,140 @@ void Dialog::handleSaveButton()
     QString fileName = dialog->getSaveFileName(0, QString("Сохранить как..."), QString("./Saves/"), QString("*.csv"));
     if (fileName != "")
         {
-            QFile file(QFileInfo(fileName).absoluteFilePath());
-            if (file.open(QIODevice::WriteOnly))
+            file = new QFile(QFileInfo(fileName).absoluteFilePath());
+            if (file->open(QIODevice::WriteOnly))
             {
-                QString text = "test";
-                QTextStream out(&file);
+                QString text = "Дата:;";
+                text.append(QDate::currentDate().toString("dd/MM/yy"));
+                text.append("\nВремя:;");
+                text.append(QTime::currentTime().toString());
+                text.append("\nНапряжение,В;Ток,мА\n");
+                QTextStream out(file);
                 out << text;
-                file.close();
+                file->close();
             }
             else
             {
                 //TODO: Error message
             }
         }
+    filePathLine->setPlaceholderText(fileName);
 //cout << fileName << endl;
 
+}
+
+//==Communication
+
+void Dialog::transaction()
+{
+
+    cout << "Transaction..." << endl;
+    statusLabel->setText("Сбор данных...");
+    thread.transaction(serialPortComboBox->currentText(),1000,requestLineEdit->text());
+}
+
+void Dialog::showResponse(const QString &s)
+{
+    setControlsEnabled(true);
+    //trafficLabel->setText(tr("Traffic, transaction #%1:"
+    //                         "\n\r-request: %2"
+     //                        "\n\r-response: %3")
+       //                   .arg(++transactionCount).arg(requestLineEdit->text()).arg(s));
+}
+
+void Dialog::processError(const QString &s)
+{
+    setControlsEnabled(true);
+    statusLabel->setText(tr("Status: Not running, %1.").arg(s));
+    //trafficLabel->setText(tr("No traffic."));
+}
+
+void Dialog::processTimeout(const QString &s)
+{
+    setControlsEnabled(true);
+    statusLabel->setText(tr("Status: Running, %1.").arg(s));
+    if (avalibleCOMs.size() != 0)
+    {
+        thread.transaction(avalibleCOMs.takeLast(),1000, "Z");
+    }else{
+
+    }
+   // trafficLabel->setText(tr("No traffic."));
+}
+
+void Dialog::setControlsEnabled(bool enable)
+{
+    runButton->setEnabled(enable);
+    serialPortComboBox->setEnabled(enable);
+    //waitResponseSpinBox->setEnabled(enable);
+    //requestLineEdit->setEnabled(enable);
+}
+void Dialog::responseProcessing(const QString &s, QString &portname)
+{
+    if (s.toStdString() == "Z"){
+        zondDevice->setDevFound(true);
+        zondDevice->setPortName(portname);
+        connectStatus->setText(tr("Прибор обнаружен на порту %1").arg(portname));
+        runButton->setEnabled(true);
+        return;
+    }else{
+        connectStatus->setText("Прибор не найден");
+    }
+}
+
+void Dialog::searchDevice()
+{
+
+    cout << "Searching..." << endl;
+    QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+    cout << infos.size() << endl;
+    if(infos.size() == 0)
+    {
+        connectStatus->setText("Нет доступных устройств");
+    }else{
+        connectStatus->setText("Поиск...");
+        for (const QSerialPortInfo &info : infos)
+            serialPortComboBox->addItem(info.portName());
+
+        QStringListModel* cbModel = new QStringListModel();
+        serialPortComboBox->setModel(cbModel);
+        //avalibleCOMs = new QStringList;
+        avalibleCOMs = QStringList(cbModel->stringList());
+         //thread.transaction(avalibleCOMs.takeFirst(),1000, "Z");
+         thread.transaction("COM3",1000, "Z\n");
+         connect(&thread, &MasterThread::response, this, &Dialog::responseProcessing);
+    }
+}
+
+void Dialog::getValues()
+{
+    vol_step->setEnabled(false);
+    savepath->setEnabled(false);
+    connect(&thread, &MasterThread::response, this, &Dialog::saveToFile);
+    currentVoltage += vol_step->value();
+    if (currentVoltage <= maxVoltage)
+    {
+        thread.transaction(zondDevice->getPortName(),1000, "Z");
+    }else
+    {
+        currentVoltage = minVoltage;
+    }
+}
+void Dialog::saveToFile(const QString &s, QString &portname)
+{
+    QTextStream out(file);
+    QString *writeString = new QString;
+    QString *voltageString = new QString;
+    QString *currentString = new QString;
+    int Vpos;
+    int Cpos;
+    Vpos = s.indexOf("V");
+    Cpos = s.indexOf("C");
+    voltageString->append(s.mid(Vpos, (Cpos-Vpos)));
+    currentString->append(s.mid(Cpos, (s.length()-Cpos)));
+    writeString->append(voltageString);
+    writeString->append(";");
+    writeString->append(currentString);
+    writeString->append(";/n");
+    getValues();
 }

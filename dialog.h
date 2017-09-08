@@ -52,6 +52,7 @@
 #define DIALOG_H
 
 #include <QDialog>
+#include "masterthread.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -63,7 +64,32 @@ class QMenu;
 class QMenuBar;
 class QPushButton;
 class QTextEdit;
+class QComboBox;
+class QSpinBox;
+class QDoubleSpinBox;
+class QFile;
+
 QT_END_NAMESPACE
+class Device
+{
+private:
+    QString portName;
+    bool devFound;
+
+public:
+    void setPortName(QString &s)
+    {
+        this->portName = s;
+    }
+    QString getPortName()
+    {
+        return(this->portName);
+    }
+    void setDevFound(bool val)
+    {
+        devFound = val;
+    }
+};
 
 //! [0]
 class Dialog : public QDialog
@@ -73,12 +99,13 @@ class Dialog : public QDialog
 public:
     Dialog();
 
-//private:
+private:
     void createMenu();
     void createHorizontalGroupBox();
-    void createGridGroupBox();
+   // void createGridGroupBox();
     void createFormGroupBox();
     void createHorizontalGroupBox2();
+    void setControlsEnabled(bool enable);
 
     enum { NumGridRows = 3, NumButtons = 4 };
 
@@ -89,15 +116,38 @@ public:
     QGroupBox *formGroupBox;
     QTextEdit *smallEditor;
     QTextEdit *bigEditor;
+    QDoubleSpinBox *vol_step;
     QLabel *labels[NumGridRows];
+    QLabel *statusLabel;
+    QLineEdit *filePathLine;
     QLineEdit *lineEdits[NumGridRows];
-    QPushButton *buttons;
+    QPushButton *searchDeviceButton;
+    QPushButton *runButton;
     QDialogButtonBox *buttonBox;
-
     QMenu *fileMenu;
     QAction *exitAction;
+    QComboBox *serialPortComboBox;
+    QLabel *waitResponseLabel;
+    QSpinBox *waitResponseSpinBox;
+    QLineEdit *requestLineEdit;
+    QLabel *connectStatus;
+    QStringList avalibleCOMs;
+    QFile *file;
+    QPushButton *savepath;
+    MasterThread thread;
+    Device *zondDevice;
+
 public slots:
 void handleSaveButton();
+void transaction();
+void showResponse(const QString &s);
+void processError(const QString &s);
+void processTimeout(const QString &s);
+void responseProcessing(const QString &s, QString &portname);
+void searchDevice();
+void getValues();
+void saveToFile(const QString &s, QString &portname);
+//void searchPortSwitch(const QString &s, QString &portname);
 };
 //! [0]
 

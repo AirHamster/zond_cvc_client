@@ -83,7 +83,7 @@ void MasterThread::run()
 
                 QString response(responseData);
                 //! [12]
-                emit this->response(response);
+                emit this->response(response, currentPortName);
                 //! [10] //! [11] //! [12]
             } else {
                 emit timeout(tr("Wait read response timeout %1")
