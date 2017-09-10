@@ -53,7 +53,7 @@
 
 #include <QDialog>
 #include "masterthread.h"
-
+#include <QtSerialPort/QSerialPort>
 QT_BEGIN_NAMESPACE
 class QAction;
 class QDialogButtonBox;
@@ -68,13 +68,14 @@ class QComboBox;
 class QSpinBox;
 class QDoubleSpinBox;
 class QFile;
-
+class QSerialPort;
+class QTimer;
 QT_END_NAMESPACE
 class Device
 {
 private:
     QString portName;
-    bool devFound;
+    bool devFound = false;
 
 public:
     void setPortName(QString &s)
@@ -88,6 +89,10 @@ public:
     void setDevFound(bool val)
     {
         devFound = val;
+    }
+    bool getDevFound(void)
+    {
+        return devFound;
     }
 };
 
@@ -138,8 +143,12 @@ private:
     QPushButton *savepath;
     MasterThread thread;
     Device *zondDevice;
-
+    QSerialPort *serial;
+    QTimer *waitTimer;
+    QTimer *searchTimer;
 private slots:
+void waitTimeout();
+void searchTimeout();
 void handleSaveButton();
 void transaction();
 //void showResponse(const QString &s);
@@ -150,6 +159,12 @@ void searchDevice();
 void getValues();
 void saveToFile(const QString &s);
 //void searchPortSwitch(const QString &s, QString &portname);
+void openSerialPort();
+void closeSerialPort();
+void writeData(const QByteArray &data);
+void readData();
+
+void handleError(QSerialPort::SerialPortError error);
 };
 //! [0]
 

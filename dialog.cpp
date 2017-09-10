@@ -77,6 +77,7 @@ Dialog::Dialog()
     createFormGroupBox();
     createHorizontalGroupBox2();
     zondDevice = new Device;
+    serial = new QSerialPort(this);
     const auto infos = QSerialPortInfo::availablePorts();
     serialPortComboBox = new QComboBox;
     for (const QSerialPortInfo &info : infos)
@@ -87,11 +88,15 @@ Dialog::Dialog()
 
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-    //connect(&thread, &MasterThread::response, this, &Dialog::transaction);
-    connect(&thread, &MasterThread::error, this, &Dialog::processError);
-    connect(&thread, &MasterThread::timeout, this, &Dialog::processTimeout);
-    connect(&thread, &MasterThread::response1, this, &Dialog::responseProcessing);
+    connect(serial, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
+            this, &Dialog::handleError);
+    connect(serial, &QSerialPort::readyRead, this, &Dialog::readData);
+    waitTimer = new QTimer(this);
+    searchTimer = new QTimer(this);
+    connect(waitTimer, SIGNAL(timeout()), this, SLOT(waitTimeout()));
+    connect(searchTimer, SIGNAL(timeout()), this, SLOT(searchTimeout()));
     QVBoxLayout *mainLayout = new QVBoxLayout;
+    file = new QFile;
 
     mainLayout->addWidget(horizontalGroupBox);
     mainLayout->addWidget(formGroupBox);
@@ -171,14 +176,15 @@ void Dialog::handleSaveButton()
     QString fileName = dialog->getSaveFileName(0, QString("Сохранить как..."), QString("./Saves/"), QString("*.csv"));
     if (fileName != "")
         {
-            file = new QFile(QFileInfo(fileName).absoluteFilePath());
+            //file = new QFile(QFileInfo(fileName).absoluteFilePath());
+            file->setFileName(QFileInfo(fileName).absoluteFilePath());
             if (file->open(QIODevice::WriteOnly))
             {
                 QString text = "Дата:;";
                 text.append(QDate::currentDate().toString("dd/MM/yy"));
                 text.append("\nВремя:;");
                 text.append(QTime::currentTime().toString());
-                text.append("\nНапряжение,В;Ток,мА\n");
+                text.append("\nНапряжение,В;Ток,мкА\n");
                 QTextStream out(file);
                 out << text;
                 //file->close();
@@ -193,44 +199,7 @@ void Dialog::handleSaveButton()
 
 }
 
-//==Communication
 
-void Dialog::transaction()
-{
-
-    cout << "Transaction..." << endl;
-    statusLabel->setText("Сбор данных...");
-    thread.transaction(serialPortComboBox->currentText(),1000,requestLineEdit->text());
-}
-
-void Dialog::processError(const QString &s)
-{
-    setControlsEnabled(true);
-    statusLabel->setText(tr("Status: Not running, %1.").arg(s));
-    //trafficLabel->setText(tr("No traffic."));
-}
-
-void Dialog::processTimeout(const QString &s)
-{
-    setControlsEnabled(true);
-    statusLabel->setText(tr("Status: Running, %1.").arg(s));
-    if (avalibleCOMs.size() != 0)
-    {
-        thread.transaction(avalibleCOMs.takeLast(),1000, "Z");
-    }else{
-
-    }
-   // trafficLabel->setText(tr("No traffic."));
-}
-
-void Dialog::setControlsEnabled(bool enable)
-{
-    runButton->setEnabled(enable);
-    serialPortComboBox->setEnabled(enable);
-    //waitResponseSpinBox->setEnabled(enable);
-    //requestLineEdit->setEnabled(enable);
-}
-//void Dialog::responseProcessing(const QString &s, QString &portname)
 void Dialog::responseProcessing(const QString &s)
 {
     if (s.toStdString() == "z\n"){
@@ -264,9 +233,10 @@ void Dialog::searchDevice()
         serialPortComboBox->setModel(cbModel);
         //avalibleCOMs = new QStringList;
         avalibleCOMs = QStringList(cbModel->stringList());
+        openSerialPort();
          //thread.transaction(avalibleCOMs.takeFirst(),1000, "Z");
-        connect(&thread, &MasterThread::response1, this, &Dialog::responseProcessing);
-        thread.transaction("COM4",5000, "Z?\n");
+       // connect(&thread, &MasterThread::response1, this, &Dialog::responseProcessing);
+        //thread.transaction("COM4",5000, "Z?\n");
 
     }
 }
@@ -275,7 +245,7 @@ void Dialog::getValues()
 {
     vol_step->setEnabled(false);
     savepath->setEnabled(false);
-    connect(&thread, &MasterThread::response1, this, &Dialog::saveToFile);
+   // connect(&thread, &MasterThread::response1, this, &Dialog::saveToFile);
 
     if (currentVoltage <= maxVoltage)
     {
@@ -283,20 +253,82 @@ void Dialog::getValues()
         getRequest->append("get ");
         getRequest->append(QString::number(currentVoltage));
         getRequest->append("\n");
-        thread.transaction("COM4",1000, *getRequest);
+        writeData(QByteArray (getRequest->toUtf8()));
+
+        //thread.transaction("COM4",1000, *getRequest);
         currentVoltage += vol_step->value();
     }else
     {
-       connect(&thread, &MasterThread::response1, this, &Dialog::blocking);
+      // connect(&thread, &MasterThread::response1, this, &Dialog::blocking);
        file->close();
     }
 }
+
+//! [4]
+void Dialog::openSerialPort()
+{
+    serial->setPortName("COM4");
+    serial->setBaudRate(115200);
+    if (serial->open(QIODevice::ReadWrite)) {
+        cout << "Opened" << endl;
+        writeData("Z?");
+    } else {
+        cout << "Not Opened" << endl;
+    }
+}
+//! [4]
+
+//! [5]
+void Dialog::closeSerialPort()
+{
+    if (serial->isOpen())
+        serial->close();
+}
+//! [5]
+
+
+//! [6]
+void Dialog::writeData(const QByteArray &data)
+{
+    serial->write(data);
+}
+//! [6]
+
+//! [7]
+void Dialog::readData()
+{
+    QByteArray data = serial->readAll();
+    cout << data << endl;
+    if (zondDevice->getDevFound() == true) {
+        saveToFile(QString(data));
+    }else{
+        responseProcessing(QString(data));
+    }
+}
+//! [7]
+
+//! [8]
+void Dialog::handleError(QSerialPort::SerialPortError error)
+{
+    if (error == QSerialPort::ResourceError) {
+        QMessageBox::critical(this, tr("Critical Error"), serial->errorString());
+        closeSerialPort();
+    }
+}
+//! [8]
 void Dialog::blocking(const QString &s){
 return;
 }
 
 void Dialog::saveToFile(const QString &s)
 {
+    if (!(file->isOpen())) {
+        file = new QFile;
+        file->setFileName("\results.csv");
+        if (!file->open(QIODevice::WriteOnly)) {
+            return;
+        }
+    }
     QTextStream out(file);
     QString *writeString = new QString;
     QString *voltageString = new QString;
@@ -315,4 +347,53 @@ void Dialog::saveToFile(const QString &s)
     cout << *writeString << endl;
     out << *writeString;
     getValues();
+}
+
+
+//==Communication
+
+void Dialog::transaction()
+{
+
+    cout << "Transaction..." << endl;
+    statusLabel->setText("Сбор данных...");
+    thread.transaction(serialPortComboBox->currentText(),1000,requestLineEdit->text());
+}
+
+void Dialog::processError(const QString &s)
+{
+    setControlsEnabled(true);
+    statusLabel->setText(tr("Status: Not running, %1.").arg(s));
+
+}
+
+void Dialog::processTimeout(const QString &s)
+{
+    setControlsEnabled(true);
+    statusLabel->setText(tr("Status: Running, %1.").arg(s));
+    if (avalibleCOMs.size() != 0)
+    {
+        thread.transaction(avalibleCOMs.takeLast(),1000, "Z");
+    }else{
+
+    }
+
+}
+
+void Dialog::setControlsEnabled(bool enable)
+{
+    runButton->setEnabled(enable);
+    serialPortComboBox->setEnabled(enable);
+    //waitResponseSpinBox->setEnabled(enable);
+    //requestLineEdit->setEnabled(enable);
+}
+
+void Dialog::waitTimeout()
+{
+
+}
+
+void Dialog::searchTimeout()
+{
+
 }

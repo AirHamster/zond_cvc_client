@@ -107,6 +107,7 @@ serial.setBaudRate(115200);
         currentWaitTimeout = waitTimeout;
         currentRequest = request;
         mutex.unlock();
+        //quit = true;
       //  terminate();
     }
     //! [13]
