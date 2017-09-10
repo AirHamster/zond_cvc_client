@@ -137,11 +137,12 @@ private:
     QMenu *fileMenu;
     QAction *exitAction;
     QComboBox *serialPortComboBox;
+    QStringList *avalibleCOMs;
     QLabel *waitResponseLabel;
     QSpinBox *waitResponseSpinBox;
     QLineEdit *requestLineEdit;
     QLabel *connectStatus;
-    QStringList avalibleCOMs;
+    //QStringList avalibleCOMs;
     QFile *file;
     QPushButton *savepath;
     //MasterThread thread;
@@ -150,6 +151,7 @@ private:
     QTimer *waitTimer;
     QTimer *searchTimer;
     QProgressBar * progressBar;
+    QList<QString> portList;
 private slots:
 void waitTimeout();
 void searchTimeout();

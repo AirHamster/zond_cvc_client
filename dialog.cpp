@@ -76,6 +76,7 @@ Dialog::Dialog()
     createHorizontalGroupBox2();
     createHorizontalGroupBox3();
     zondDevice = new Device;
+    QList<QString> portList;
     serial = new QSerialPort(this);
     const auto infos = QSerialPortInfo::availablePorts();
     serialPortComboBox = new QComboBox;
@@ -213,6 +214,7 @@ void Dialog::handleSaveButton()
 void Dialog::responseProcessing(const QString &s)
 {
     if (s.toStdString() == "z\n"){
+        searchTimer->stop();
         zondDevice->setDevFound(true);
         //     zondDevice->setPortName(portname);
         //connectStatus->setText(tr("Прибор обнаружен на порту %1").arg(portname));
@@ -230,6 +232,7 @@ void Dialog::searchDevice()
 
     cout << "Searching..." << endl;
     QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+
     cout << infos.size() << endl;
     if(infos.size() == 0)
     {
@@ -237,12 +240,15 @@ void Dialog::searchDevice()
     }else{
         connectStatus->setText("Поиск...");
         for (const QSerialPortInfo &info : infos)
-            serialPortComboBox->addItem(info.portName());
+           portList << info.portName();
+            //serialPortComboBox->addItem(info.portName());
 
-        QStringListModel* cbModel = new QStringListModel();
-        serialPortComboBox->setModel(cbModel);
+      //  QStringListModel* cbModel = new QStringListModel();
+       // serialPortComboBox->setModel(cbModel);
         //avalibleCOMs = new QStringList;
-        avalibleCOMs = QStringList(cbModel->stringList());
+       // avalibleCOMs = new QStringList(cbModel->stringList());
+        serial->setPortName(portList.takeLast());
+        searchTimer->start(500);
         openSerialPort();
     }
 }
@@ -259,20 +265,22 @@ void Dialog::getValues()
         getRequest->append(QString::number(currentVoltage));
         getRequest->append("\n");
         writeData(QByteArray (getRequest->toUtf8()));
-        waitTimer->start(100);
+        waitTimer->start(300);
         currentVoltage += vol_step->value();
     }else
     {
         waitTimer->stop();
         writeData(QByteArray ("stop\n"));
         statusLabel->setText("Завершено");
+        vol_step->setEnabled(true);
+        savepath->setEnabled(true);
         file->close();
     }
 }
 
 void Dialog::openSerialPort()
 {
-    serial->setPortName("COM4");
+    //serial->setPortName(portname);
     serial->setBaudRate(115200);
     if (serial->open(QIODevice::ReadWrite)) {
         cout << "Opened" << endl;
@@ -331,6 +339,7 @@ void Dialog::saveToFile(const QString &s)
             return;
         }
     }
+    waitTimer->stop();
     QTextStream out(file);
     QString *writeString = new QString;
     QString *voltageString = new QString;
@@ -359,5 +368,12 @@ void Dialog::waitTimeout()
 
 void Dialog::searchTimeout()
 {
+    if (portList.size() !=0) {
+     serial->setPortName(portList.takeLast());
+    }else {
+     connectStatus->setText("Прибор не найден");
+     searchTimer->stop();
+    }
+    //serial->setPortName(avalibleCOMs->takeLast());
     //connectStatus->setText("");
 }
