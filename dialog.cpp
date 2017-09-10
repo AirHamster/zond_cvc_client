@@ -66,7 +66,7 @@ QTextStream cout(stdout);
 QTextStream cin(stdin);
 //using namespace std;
 const double minVoltage = -8;
-const double maxVoltage = 50;
+const double maxVoltage = 2;
 double currentVoltage = minVoltage;
 
 
@@ -156,7 +156,7 @@ void Dialog::createHorizontalGroupBox2()
 
     runButton = new QPushButton("Старт");
     runButton->setEnabled(false);
-    connect(runButton, &QPushButton::clicked, this, &Dialog::transaction);
+    connect(runButton, &QPushButton::clicked, this, &Dialog::getValues);
     layout2->addWidget(runButton);
     layout2->addWidget(statusLabel);
 
@@ -181,7 +181,7 @@ void Dialog::handleSaveButton()
                 text.append("\nНапряжение,В;Ток,мА\n");
                 QTextStream out(file);
                 out << text;
-                file->close();
+                //file->close();
             }
             else
             {
@@ -265,7 +265,7 @@ void Dialog::searchDevice()
         //avalibleCOMs = new QStringList;
         avalibleCOMs = QStringList(cbModel->stringList());
          //thread.transaction(avalibleCOMs.takeFirst(),1000, "Z");
-       // connect(&thread, &MasterThread::response, this, &Dialog::responseProcessing);
+        connect(&thread, &MasterThread::response1, this, &Dialog::responseProcessing);
         thread.transaction("COM4",5000, "Z?\n");
 
     }
@@ -275,17 +275,27 @@ void Dialog::getValues()
 {
     vol_step->setEnabled(false);
     savepath->setEnabled(false);
-    //connect(&thread, &MasterThread::response1, this, &Dialog::saveToFile);
-    currentVoltage += vol_step->value();
+    connect(&thread, &MasterThread::response1, this, &Dialog::saveToFile);
+
     if (currentVoltage <= maxVoltage)
     {
-        thread.transaction(zondDevice->getPortName(),1000, "Z?");
+        QString *getRequest = new QString;
+        getRequest->append("get ");
+        getRequest->append(QString::number(currentVoltage));
+        getRequest->append("\n");
+        thread.transaction("COM4",1000, *getRequest);
+        currentVoltage += vol_step->value();
     }else
     {
-        currentVoltage = minVoltage;
+       connect(&thread, &MasterThread::response1, this, &Dialog::blocking);
+       file->close();
     }
 }
-void Dialog::saveToFile(const QString &s, QString &portname)
+void Dialog::blocking(const QString &s){
+return;
+}
+
+void Dialog::saveToFile(const QString &s)
 {
     QTextStream out(file);
     QString *writeString = new QString;
@@ -295,11 +305,14 @@ void Dialog::saveToFile(const QString &s, QString &portname)
     int Cpos;
     Vpos = s.indexOf("V");
     Cpos = s.indexOf("C");
-    voltageString->append(s.mid(Vpos, (Cpos-Vpos)));
-    currentString->append(s.mid(Cpos, (s.length()-Cpos)));
+    voltageString->append(s.mid((Vpos+1), (Cpos-Vpos-1)));
+    currentString->append(s.mid((Cpos+1), (s.length()-Cpos-1)));
     writeString->append(voltageString);
     writeString->append(";");
     writeString->append(currentString);
-    writeString->append(";/n");
+    writeString->remove(QChar('\n'), Qt::CaseInsensitive);
+    writeString->append(";\n");
+    cout << *writeString << endl;
+    out << *writeString;
     getValues();
 }

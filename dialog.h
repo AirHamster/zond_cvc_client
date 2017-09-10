@@ -99,6 +99,8 @@ class Dialog : public QDialog
 public:
     Dialog();
 
+public slots:
+    void blocking(const QString &s);
 private:
     void createMenu();
     void createHorizontalGroupBox();
@@ -146,7 +148,7 @@ void processTimeout(const QString &s);
 void responseProcessing(const QString &s);
 void searchDevice();
 void getValues();
-void saveToFile(const QString &s, QString &portname);
+void saveToFile(const QString &s);
 //void searchPortSwitch(const QString &s, QString &portname);
 };
 //! [0]

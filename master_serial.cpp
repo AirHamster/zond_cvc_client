@@ -31,6 +31,7 @@ void MasterThread::transaction(const QString &portName, int waitTimeout, const Q
     this->waitTimeout = waitTimeout;
     this->request = request;
     //! [3]
+  //  while (isRunning());
     if (!isRunning())
         start();
     else
@@ -106,6 +107,8 @@ serial.setBaudRate(115200);
         currentWaitTimeout = waitTimeout;
         currentRequest = request;
         mutex.unlock();
+      //  terminate();
     }
     //! [13]
+
 }
