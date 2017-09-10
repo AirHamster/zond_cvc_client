@@ -52,7 +52,7 @@
 #define DIALOG_H
 
 #include <QDialog>
-#include "masterthread.h"
+//#include "masterthread.h"
 #include <QtSerialPort/QSerialPort>
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -70,6 +70,7 @@ class QDoubleSpinBox;
 class QFile;
 class QSerialPort;
 class QTimer;
+class QProgressBar;
 QT_END_NAMESPACE
 class Device
 {
@@ -105,13 +106,14 @@ public:
     Dialog();
 
 public slots:
-    void blocking(const QString &s);
+  //  void blocking(const QString &s);
 private:
     void createMenu();
     void createHorizontalGroupBox();
    // void createGridGroupBox();
     void createFormGroupBox();
     void createHorizontalGroupBox2();
+    void createHorizontalGroupBox3();
     void setControlsEnabled(bool enable);
 
     enum { NumGridRows = 3, NumButtons = 4 };
@@ -119,6 +121,7 @@ private:
     QMenuBar *menuBar;
     QGroupBox *horizontalGroupBox;
     QGroupBox *horizontalGroupBox2;
+    QGroupBox *horizontalGroupBox3;
     QGroupBox *gridGroupBox;
     QGroupBox *formGroupBox;
     QTextEdit *smallEditor;
@@ -141,19 +144,16 @@ private:
     QStringList avalibleCOMs;
     QFile *file;
     QPushButton *savepath;
-    MasterThread thread;
+    //MasterThread thread;
     Device *zondDevice;
     QSerialPort *serial;
     QTimer *waitTimer;
     QTimer *searchTimer;
+    QProgressBar * progressBar;
 private slots:
 void waitTimeout();
 void searchTimeout();
 void handleSaveButton();
-void transaction();
-//void showResponse(const QString &s);
-void processError(const QString &s);
-void processTimeout(const QString &s);
 void responseProcessing(const QString &s);
 void searchDevice();
 void getValues();

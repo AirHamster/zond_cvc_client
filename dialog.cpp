@@ -60,22 +60,21 @@
 #include <QTime>
 #include <QDate>
 #include <QStringListModel>
+#include <QProgressBar>
 #include "dialog.h"
 #include <iostream>
 QTextStream cout(stdout);
 QTextStream cin(stdin);
-//using namespace std;
 const double minVoltage = -8;
-const double maxVoltage = 2;
+const double maxVoltage = 50;
 double currentVoltage = minVoltage;
 
-
-//! [0]
 Dialog::Dialog()
 {
     createHorizontalGroupBox();
     createFormGroupBox();
     createHorizontalGroupBox2();
+    createHorizontalGroupBox3();
     zondDevice = new Device;
     serial = new QSerialPort(this);
     const auto infos = QSerialPortInfo::availablePorts();
@@ -101,7 +100,9 @@ Dialog::Dialog()
     mainLayout->addWidget(horizontalGroupBox);
     mainLayout->addWidget(formGroupBox);
     mainLayout->addWidget(horizontalGroupBox2);
+    mainLayout->addWidget(horizontalGroupBox3);
     mainLayout->addWidget(buttonBox);
+
     setLayout(mainLayout);
     setWindowTitle("Zond CVC Meter Client");
 }
@@ -141,13 +142,11 @@ void Dialog::createFormGroupBox()
 
     filePathLine = new QLineEdit();
     filePathLine->setReadOnly(true);
-
-    layout->addRow(new QLabel("Шаг измерений, V:"), vol_step);
-    layout->addWidget(filePathLine);
-    layout->addRow(new QLabel("Путь к файлу:"), filePathLine);
-
     savepath = new QPushButton("Задать имя...");
     connect(savepath, SIGNAL (released()), this, SLOT (handleSaveButton()));
+    layout->addRow(new QLabel("Шаг измерений, V:"), vol_step);
+    // layout->addWidget(filePathLine);
+    layout->addRow(new QLabel("Путь к файлу:"), filePathLine);
     layout->addWidget(savepath);
     formGroupBox->setLayout(layout);
 }
@@ -159,15 +158,26 @@ void Dialog::createHorizontalGroupBox2()
     //layout2->addWidget(serialPortComboBox);
     statusLabel = new QLabel("Нет подключения");
 
+
     runButton = new QPushButton("Старт");
     runButton->setEnabled(false);
     connect(runButton, &QPushButton::clicked, this, &Dialog::getValues);
     layout2->addWidget(runButton);
     layout2->addWidget(statusLabel);
 
+
     horizontalGroupBox2->setLayout(layout2);
 }
-//! [13]
+
+void Dialog::createHorizontalGroupBox3()
+{
+    horizontalGroupBox3 = new QGroupBox();
+    QHBoxLayout *layout3 = new QHBoxLayout;
+    progressBar = new QProgressBar();
+    progressBar->setAlignment(Qt::AlignHCenter);
+    layout3->addWidget(progressBar);
+    horizontalGroupBox3->setLayout(layout3);
+}
 
 void Dialog::handleSaveButton()
 {
@@ -175,27 +185,27 @@ void Dialog::handleSaveButton()
 
     QString fileName = dialog->getSaveFileName(0, QString("Сохранить как..."), QString("./Saves/"), QString("*.csv"));
     if (fileName != "")
+    {
+        file->setFileName(QFileInfo(fileName).absoluteFilePath());
+        if (file->open(QIODevice::WriteOnly))
         {
-            //file = new QFile(QFileInfo(fileName).absoluteFilePath());
-            file->setFileName(QFileInfo(fileName).absoluteFilePath());
-            if (file->open(QIODevice::WriteOnly))
-            {
-                QString text = "Дата:;";
-                text.append(QDate::currentDate().toString("dd/MM/yy"));
-                text.append("\nВремя:;");
-                text.append(QTime::currentTime().toString());
-                text.append("\nНапряжение,В;Ток,мкА\n");
-                QTextStream out(file);
-                out << text;
-                //file->close();
-            }
-            else
-            {
-                //TODO: Error message
-            }
+            QString text = "Дата:;";
+            text.append(QDate::currentDate().toString("dd/MM/yy"));
+            text.append("\nВремя:;");
+            text.append(QTime::currentTime().toString());
+            text.append("\nНапряжение,В;Ток,мкА\n");
+            QTextStream out(file);
+            out << text;
+            //file->close();
         }
+        else
+        {
+            return;
+            //TODO: Error message
+        }
+    }
     filePathLine->setPlaceholderText(fileName);
-//cout << fileName << endl;
+    //cout << fileName << endl;
 
 }
 
@@ -204,7 +214,7 @@ void Dialog::responseProcessing(const QString &s)
 {
     if (s.toStdString() == "z\n"){
         zondDevice->setDevFound(true);
-   //     zondDevice->setPortName(portname);
+        //     zondDevice->setPortName(portname);
         //connectStatus->setText(tr("Прибор обнаружен на порту %1").arg(portname));
         connectStatus->setText("Прибор обнаружен");
         statusLabel->setText("Готово к работе");
@@ -234,10 +244,6 @@ void Dialog::searchDevice()
         //avalibleCOMs = new QStringList;
         avalibleCOMs = QStringList(cbModel->stringList());
         openSerialPort();
-         //thread.transaction(avalibleCOMs.takeFirst(),1000, "Z");
-       // connect(&thread, &MasterThread::response1, this, &Dialog::responseProcessing);
-        //thread.transaction("COM4",5000, "Z?\n");
-
     }
 }
 
@@ -245,7 +251,6 @@ void Dialog::getValues()
 {
     vol_step->setEnabled(false);
     savepath->setEnabled(false);
-   // connect(&thread, &MasterThread::response1, this, &Dialog::saveToFile);
 
     if (currentVoltage <= maxVoltage)
     {
@@ -254,47 +259,40 @@ void Dialog::getValues()
         getRequest->append(QString::number(currentVoltage));
         getRequest->append("\n");
         writeData(QByteArray (getRequest->toUtf8()));
-
-        //thread.transaction("COM4",1000, *getRequest);
+        waitTimer->start(100);
         currentVoltage += vol_step->value();
     }else
     {
-      // connect(&thread, &MasterThread::response1, this, &Dialog::blocking);
-       file->close();
+        waitTimer->stop();
+        writeData(QByteArray ("stop\n"));
+        statusLabel->setText("Завершено");
+        file->close();
     }
 }
 
-//! [4]
 void Dialog::openSerialPort()
 {
     serial->setPortName("COM4");
     serial->setBaudRate(115200);
     if (serial->open(QIODevice::ReadWrite)) {
         cout << "Opened" << endl;
-        writeData("Z?");
+        writeData("Z?\n");
     } else {
         cout << "Not Opened" << endl;
     }
 }
-//! [4]
 
-//! [5]
 void Dialog::closeSerialPort()
 {
     if (serial->isOpen())
         serial->close();
 }
-//! [5]
 
-
-//! [6]
 void Dialog::writeData(const QByteArray &data)
 {
     serial->write(data);
 }
-//! [6]
 
-//! [7]
 void Dialog::readData()
 {
     QByteArray data = serial->readAll();
@@ -305,27 +303,31 @@ void Dialog::readData()
         responseProcessing(QString(data));
     }
 }
-//! [7]
 
-//! [8]
 void Dialog::handleError(QSerialPort::SerialPortError error)
 {
     if (error == QSerialPort::ResourceError) {
-        QMessageBox::critical(this, tr("Critical Error"), serial->errorString());
+        //QMessageBox::critical(this, tr("Critical Error"), serial->errorString());
+        statusLabel->setText("Ошибка!");
         closeSerialPort();
     }
 }
-//! [8]
-void Dialog::blocking(const QString &s){
-return;
-}
+
 
 void Dialog::saveToFile(const QString &s)
 {
     if (!(file->isOpen())) {
         file = new QFile;
-        file->setFileName("\results.csv");
-        if (!file->open(QIODevice::WriteOnly)) {
+        file->setFileName("./probe_results.csv");
+        if (file->open(QIODevice::WriteOnly)) {
+            QString text = "Дата:;";
+            text.append(QDate::currentDate().toString("dd/MM/yy"));
+            text.append("\nВремя:;");
+            text.append(QTime::currentTime().toString());
+            text.append("\nНапряжение,В;Ток,мкА\n");
+            QTextStream out(file);
+            out << text;
+        }else {
             return;
         }
     }
@@ -344,56 +346,18 @@ void Dialog::saveToFile(const QString &s)
     writeString->append(currentString);
     writeString->remove(QChar('\n'), Qt::CaseInsensitive);
     writeString->append(";\n");
+    writeString->replace(QChar('.'), QChar(','), Qt::CaseSensitive);
     cout << *writeString << endl;
     out << *writeString;
     getValues();
 }
 
-
-//==Communication
-
-void Dialog::transaction()
-{
-
-    cout << "Transaction..." << endl;
-    statusLabel->setText("Сбор данных...");
-    thread.transaction(serialPortComboBox->currentText(),1000,requestLineEdit->text());
-}
-
-void Dialog::processError(const QString &s)
-{
-    setControlsEnabled(true);
-    statusLabel->setText(tr("Status: Not running, %1.").arg(s));
-
-}
-
-void Dialog::processTimeout(const QString &s)
-{
-    setControlsEnabled(true);
-    statusLabel->setText(tr("Status: Running, %1.").arg(s));
-    if (avalibleCOMs.size() != 0)
-    {
-        thread.transaction(avalibleCOMs.takeLast(),1000, "Z");
-    }else{
-
-    }
-
-}
-
-void Dialog::setControlsEnabled(bool enable)
-{
-    runButton->setEnabled(enable);
-    serialPortComboBox->setEnabled(enable);
-    //waitResponseSpinBox->setEnabled(enable);
-    //requestLineEdit->setEnabled(enable);
-}
-
 void Dialog::waitTimeout()
 {
-
+    statusLabel->setText("Устройство не отвечает");
 }
 
 void Dialog::searchTimeout()
 {
-
+    //connectStatus->setText("");
 }

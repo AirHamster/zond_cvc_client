@@ -26,14 +26,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         dialog.cpp \
-    master_serial.cpp \
-    slave_serial.cpp \
     csvfiles.cpp
 
 HEADERS += \
         dialog.h \
-    slavethread.h \
-    masterthread.h \
     csvfiles.h
 
 FORMS +=

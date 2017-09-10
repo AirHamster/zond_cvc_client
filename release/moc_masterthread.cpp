@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MasterThread_t {
     QByteArrayData data[6];
-    char stringdata0[39];
+    char stringdata0[40];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,14 +32,14 @@ struct qt_meta_stringdata_MasterThread_t {
 static const qt_meta_stringdata_MasterThread_t qt_meta_stringdata_MasterThread = {
     {
 QT_MOC_LITERAL(0, 0, 12), // "MasterThread"
-QT_MOC_LITERAL(1, 13, 8), // "response"
-QT_MOC_LITERAL(2, 22, 0), // ""
-QT_MOC_LITERAL(3, 23, 1), // "s"
-QT_MOC_LITERAL(4, 25, 5), // "error"
-QT_MOC_LITERAL(5, 31, 7) // "timeout"
+QT_MOC_LITERAL(1, 13, 9), // "response1"
+QT_MOC_LITERAL(2, 23, 0), // ""
+QT_MOC_LITERAL(3, 24, 1), // "s"
+QT_MOC_LITERAL(4, 26, 5), // "error"
+QT_MOC_LITERAL(5, 32, 7) // "timeout"
 
     },
-    "MasterThread\0response\0\0s\0error\0timeout"
+    "MasterThread\0response1\0\0s\0error\0timeout"
 };
 #undef QT_MOC_LITERAL
 
@@ -75,7 +75,7 @@ void MasterThread::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         MasterThread *_t = static_cast<MasterThread *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->response((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        case 0: _t->response1((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         case 1: _t->error((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         case 2: _t->timeout((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         default: ;
@@ -85,7 +85,7 @@ void MasterThread::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         void **func = reinterpret_cast<void **>(_a[1]);
         {
             typedef void (MasterThread::*_t)(const QString & );
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&MasterThread::response)) {
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&MasterThread::response1)) {
                 *result = 0;
                 return;
             }
@@ -144,7 +144,7 @@ int MasterThread::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void MasterThread::response(const QString & _t1)
+void MasterThread::response1(const QString & _t1)
 {
     void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);

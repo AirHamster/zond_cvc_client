@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Dialog_t {
-    QByteArrayData data[22];
-    char stringdata0[257];
+    QByteArrayData data[18];
+    char stringdata0[208];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,37 +32,31 @@ struct qt_meta_stringdata_Dialog_t {
 static const qt_meta_stringdata_Dialog_t qt_meta_stringdata_Dialog = {
     {
 QT_MOC_LITERAL(0, 0, 6), // "Dialog"
-QT_MOC_LITERAL(1, 7, 8), // "blocking"
-QT_MOC_LITERAL(2, 16, 0), // ""
-QT_MOC_LITERAL(3, 17, 1), // "s"
-QT_MOC_LITERAL(4, 19, 11), // "waitTimeout"
-QT_MOC_LITERAL(5, 31, 13), // "searchTimeout"
-QT_MOC_LITERAL(6, 45, 16), // "handleSaveButton"
-QT_MOC_LITERAL(7, 62, 11), // "transaction"
-QT_MOC_LITERAL(8, 74, 12), // "processError"
-QT_MOC_LITERAL(9, 87, 14), // "processTimeout"
-QT_MOC_LITERAL(10, 102, 18), // "responseProcessing"
-QT_MOC_LITERAL(11, 121, 12), // "searchDevice"
-QT_MOC_LITERAL(12, 134, 9), // "getValues"
-QT_MOC_LITERAL(13, 144, 10), // "saveToFile"
-QT_MOC_LITERAL(14, 155, 14), // "openSerialPort"
-QT_MOC_LITERAL(15, 170, 15), // "closeSerialPort"
-QT_MOC_LITERAL(16, 186, 9), // "writeData"
-QT_MOC_LITERAL(17, 196, 4), // "data"
-QT_MOC_LITERAL(18, 201, 8), // "readData"
-QT_MOC_LITERAL(19, 210, 11), // "handleError"
-QT_MOC_LITERAL(20, 222, 28), // "QSerialPort::SerialPortError"
-QT_MOC_LITERAL(21, 251, 5) // "error"
+QT_MOC_LITERAL(1, 7, 11), // "waitTimeout"
+QT_MOC_LITERAL(2, 19, 0), // ""
+QT_MOC_LITERAL(3, 20, 13), // "searchTimeout"
+QT_MOC_LITERAL(4, 34, 16), // "handleSaveButton"
+QT_MOC_LITERAL(5, 51, 18), // "responseProcessing"
+QT_MOC_LITERAL(6, 70, 1), // "s"
+QT_MOC_LITERAL(7, 72, 12), // "searchDevice"
+QT_MOC_LITERAL(8, 85, 9), // "getValues"
+QT_MOC_LITERAL(9, 95, 10), // "saveToFile"
+QT_MOC_LITERAL(10, 106, 14), // "openSerialPort"
+QT_MOC_LITERAL(11, 121, 15), // "closeSerialPort"
+QT_MOC_LITERAL(12, 137, 9), // "writeData"
+QT_MOC_LITERAL(13, 147, 4), // "data"
+QT_MOC_LITERAL(14, 152, 8), // "readData"
+QT_MOC_LITERAL(15, 161, 11), // "handleError"
+QT_MOC_LITERAL(16, 173, 28), // "QSerialPort::SerialPortError"
+QT_MOC_LITERAL(17, 202, 5) // "error"
 
     },
-    "Dialog\0blocking\0\0s\0waitTimeout\0"
-    "searchTimeout\0handleSaveButton\0"
-    "transaction\0processError\0processTimeout\0"
-    "responseProcessing\0searchDevice\0"
-    "getValues\0saveToFile\0openSerialPort\0"
-    "closeSerialPort\0writeData\0data\0readData\0"
-    "handleError\0QSerialPort::SerialPortError\0"
-    "error"
+    "Dialog\0waitTimeout\0\0searchTimeout\0"
+    "handleSaveButton\0responseProcessing\0"
+    "s\0searchDevice\0getValues\0saveToFile\0"
+    "openSerialPort\0closeSerialPort\0writeData\0"
+    "data\0readData\0handleError\0"
+    "QSerialPort::SerialPortError\0error"
 };
 #undef QT_MOC_LITERAL
 
@@ -72,7 +66,7 @@ static const uint qt_meta_data_Dialog[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      16,   14, // methods
+      12,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -80,40 +74,32 @@ static const uint qt_meta_data_Dialog[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    1,   94,    2, 0x0a /* Public */,
-       4,    0,   97,    2, 0x08 /* Private */,
-       5,    0,   98,    2, 0x08 /* Private */,
-       6,    0,   99,    2, 0x08 /* Private */,
-       7,    0,  100,    2, 0x08 /* Private */,
-       8,    1,  101,    2, 0x08 /* Private */,
-       9,    1,  104,    2, 0x08 /* Private */,
-      10,    1,  107,    2, 0x08 /* Private */,
-      11,    0,  110,    2, 0x08 /* Private */,
-      12,    0,  111,    2, 0x08 /* Private */,
-      13,    1,  112,    2, 0x08 /* Private */,
-      14,    0,  115,    2, 0x08 /* Private */,
-      15,    0,  116,    2, 0x08 /* Private */,
-      16,    1,  117,    2, 0x08 /* Private */,
-      18,    0,  120,    2, 0x08 /* Private */,
-      19,    1,  121,    2, 0x08 /* Private */,
+       1,    0,   74,    2, 0x08 /* Private */,
+       3,    0,   75,    2, 0x08 /* Private */,
+       4,    0,   76,    2, 0x08 /* Private */,
+       5,    1,   77,    2, 0x08 /* Private */,
+       7,    0,   80,    2, 0x08 /* Private */,
+       8,    0,   81,    2, 0x08 /* Private */,
+       9,    1,   82,    2, 0x08 /* Private */,
+      10,    0,   85,    2, 0x08 /* Private */,
+      11,    0,   86,    2, 0x08 /* Private */,
+      12,    1,   87,    2, 0x08 /* Private */,
+      14,    0,   90,    2, 0x08 /* Private */,
+      15,    1,   91,    2, 0x08 /* Private */,
 
  // slots: parameters
-    QMetaType::Void, QMetaType::QString,    3,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,    3,
-    QMetaType::Void, QMetaType::QString,    3,
-    QMetaType::Void, QMetaType::QString,    3,
+    QMetaType::Void, QMetaType::QString,    6,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,    3,
+    QMetaType::Void, QMetaType::QString,    6,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QByteArray,   17,
+    QMetaType::Void, QMetaType::QByteArray,   13,
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 20,   21,
+    QMetaType::Void, 0x80000000 | 16,   17,
 
        0        // eod
 };
@@ -124,22 +110,18 @@ void Dialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         Dialog *_t = static_cast<Dialog *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->blocking((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 1: _t->waitTimeout(); break;
-        case 2: _t->searchTimeout(); break;
-        case 3: _t->handleSaveButton(); break;
-        case 4: _t->transaction(); break;
-        case 5: _t->processError((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 6: _t->processTimeout((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 7: _t->responseProcessing((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 8: _t->searchDevice(); break;
-        case 9: _t->getValues(); break;
-        case 10: _t->saveToFile((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 11: _t->openSerialPort(); break;
-        case 12: _t->closeSerialPort(); break;
-        case 13: _t->writeData((*reinterpret_cast< const QByteArray(*)>(_a[1]))); break;
-        case 14: _t->readData(); break;
-        case 15: _t->handleError((*reinterpret_cast< QSerialPort::SerialPortError(*)>(_a[1]))); break;
+        case 0: _t->waitTimeout(); break;
+        case 1: _t->searchTimeout(); break;
+        case 2: _t->handleSaveButton(); break;
+        case 3: _t->responseProcessing((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        case 4: _t->searchDevice(); break;
+        case 5: _t->getValues(); break;
+        case 6: _t->saveToFile((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        case 7: _t->openSerialPort(); break;
+        case 8: _t->closeSerialPort(); break;
+        case 9: _t->writeData((*reinterpret_cast< const QByteArray(*)>(_a[1]))); break;
+        case 10: _t->readData(); break;
+        case 11: _t->handleError((*reinterpret_cast< QSerialPort::SerialPortError(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -170,13 +152,13 @@ int Dialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 16)
+        if (_id < 12)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 16;
+        _id -= 12;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 16)
+        if (_id < 12)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 16;
+        _id -= 12;
     }
     return _id;
 }
