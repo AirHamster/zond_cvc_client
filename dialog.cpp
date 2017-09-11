@@ -67,6 +67,7 @@ QTextStream cout(stdout);
 QTextStream cin(stdin);
 const double minVoltage = -8;
 const double maxVoltage = 50;
+const double singleStep = (1/(maxVoltage-minVoltage));
 double currentVoltage = minVoltage;
 
 Dialog::Dialog()
@@ -176,6 +177,8 @@ void Dialog::createHorizontalGroupBox3()
     QHBoxLayout *layout3 = new QHBoxLayout;
     progressBar = new QProgressBar();
     progressBar->setAlignment(Qt::AlignHCenter);
+    progressBar->setMinimum(0);
+    progressBar->setTextVisible(false);
     layout3->addWidget(progressBar);
     horizontalGroupBox3->setLayout(layout3);
 }
@@ -229,7 +232,7 @@ void Dialog::responseProcessing(const QString &s)
 
 void Dialog::searchDevice()
 {
-
+    serial->close();
     cout << "Searching..." << endl;
     QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
 
@@ -257,7 +260,10 @@ void Dialog::getValues()
 {
     vol_step->setEnabled(false);
     savepath->setEnabled(false);
-
+    runButton->setEnabled(false);
+    searchDeviceButton->setEnabled(false);
+    progressBar->setMaximum((maxVoltage-minVoltage)/vol_step->value());
+    progressBar->setValue(progressBar->value()+1);
     if (currentVoltage <= maxVoltage)
     {
         QString *getRequest = new QString;
@@ -265,15 +271,20 @@ void Dialog::getValues()
         getRequest->append(QString::number(currentVoltage));
         getRequest->append("\n");
         writeData(QByteArray (getRequest->toUtf8()));
-        waitTimer->start(300);
+        waitTimer->start(1000);
+        statusLabel->setText("Измерения выполняются");
         currentVoltage += vol_step->value();
     }else
     {
+        currentVoltage = minVoltage;
         waitTimer->stop();
         writeData(QByteArray ("stop\n"));
         statusLabel->setText("Завершено");
         vol_step->setEnabled(true);
         savepath->setEnabled(true);
+        runButton->setEnabled(true);
+        searchDeviceButton->setEnabled(true);
+        progressBar->setValue(0);
         file->close();
     }
 }
