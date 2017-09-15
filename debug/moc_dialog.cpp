@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Dialog_t {
-    QByteArrayData data[18];
-    char stringdata0[208];
+    QByteArrayData data[19];
+    char stringdata0[224];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -48,7 +48,8 @@ QT_MOC_LITERAL(13, 147, 4), // "data"
 QT_MOC_LITERAL(14, 152, 8), // "readData"
 QT_MOC_LITERAL(15, 161, 11), // "handleError"
 QT_MOC_LITERAL(16, 173, 28), // "QSerialPort::SerialPortError"
-QT_MOC_LITERAL(17, 202, 5) // "error"
+QT_MOC_LITERAL(17, 202, 5), // "error"
+QT_MOC_LITERAL(18, 208, 15) // "handleRunButton"
 
     },
     "Dialog\0waitTimeout\0\0searchTimeout\0"
@@ -56,7 +57,8 @@ QT_MOC_LITERAL(17, 202, 5) // "error"
     "s\0searchDevice\0getValues\0saveToFile\0"
     "openSerialPort\0closeSerialPort\0writeData\0"
     "data\0readData\0handleError\0"
-    "QSerialPort::SerialPortError\0error"
+    "QSerialPort::SerialPortError\0error\0"
+    "handleRunButton"
 };
 #undef QT_MOC_LITERAL
 
@@ -66,7 +68,7 @@ static const uint qt_meta_data_Dialog[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      12,   14, // methods
+      13,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -74,18 +76,19 @@ static const uint qt_meta_data_Dialog[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   74,    2, 0x08 /* Private */,
-       3,    0,   75,    2, 0x08 /* Private */,
-       4,    0,   76,    2, 0x08 /* Private */,
-       5,    1,   77,    2, 0x08 /* Private */,
-       7,    0,   80,    2, 0x08 /* Private */,
-       8,    0,   81,    2, 0x08 /* Private */,
-       9,    1,   82,    2, 0x08 /* Private */,
-      10,    0,   85,    2, 0x08 /* Private */,
-      11,    0,   86,    2, 0x08 /* Private */,
-      12,    1,   87,    2, 0x08 /* Private */,
-      14,    0,   90,    2, 0x08 /* Private */,
-      15,    1,   91,    2, 0x08 /* Private */,
+       1,    0,   79,    2, 0x08 /* Private */,
+       3,    0,   80,    2, 0x08 /* Private */,
+       4,    0,   81,    2, 0x08 /* Private */,
+       5,    1,   82,    2, 0x08 /* Private */,
+       7,    0,   85,    2, 0x08 /* Private */,
+       8,    0,   86,    2, 0x08 /* Private */,
+       9,    1,   87,    2, 0x08 /* Private */,
+      10,    0,   90,    2, 0x08 /* Private */,
+      11,    0,   91,    2, 0x08 /* Private */,
+      12,    1,   92,    2, 0x08 /* Private */,
+      14,    0,   95,    2, 0x08 /* Private */,
+      15,    1,   96,    2, 0x08 /* Private */,
+      18,    0,   99,    2, 0x08 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -100,6 +103,7 @@ static const uint qt_meta_data_Dialog[] = {
     QMetaType::Void, QMetaType::QByteArray,   13,
     QMetaType::Void,
     QMetaType::Void, 0x80000000 | 16,   17,
+    QMetaType::Void,
 
        0        // eod
 };
@@ -122,6 +126,7 @@ void Dialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         case 9: _t->writeData((*reinterpret_cast< const QByteArray(*)>(_a[1]))); break;
         case 10: _t->readData(); break;
         case 11: _t->handleError((*reinterpret_cast< QSerialPort::SerialPortError(*)>(_a[1]))); break;
+        case 12: _t->handleRunButton(); break;
         default: ;
         }
     }
@@ -152,13 +157,13 @@ int Dialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 12)
+        if (_id < 13)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 13;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 12)
+        if (_id < 13)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 12;
+        _id -= 13;
     }
     return _id;
 }

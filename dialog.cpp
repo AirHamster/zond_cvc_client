@@ -68,7 +68,7 @@ QTextStream cin(stdin);
 const double minVoltage = -8;
 const double maxVoltage = 50;
 const double singleStep = (1/(maxVoltage-minVoltage));
-double currentVoltage = minVoltage;
+double currentVoltage = maxVoltage;
 
 Dialog::Dialog()
 {
@@ -106,7 +106,7 @@ Dialog::Dialog()
     mainLayout->addWidget(buttonBox);
 
     setLayout(mainLayout);
-    setWindowTitle("Zond CVC Meter Client");
+    setWindowTitle("Probe CVC Meter Client");
 }
 
 void Dialog::createMenu()
@@ -163,7 +163,7 @@ void Dialog::createHorizontalGroupBox2()
 
     runButton = new QPushButton("Старт");
     runButton->setEnabled(false);
-    connect(runButton, &QPushButton::clicked, this, &Dialog::getValues);
+    connect(runButton, &QPushButton::clicked, this, &Dialog::handleRunButton);
     layout2->addWidget(runButton);
     layout2->addWidget(statusLabel);
 
@@ -188,9 +188,19 @@ void Dialog::handleSaveButton()
     QFileDialog *dialog = new QFileDialog;
 
     QString fileName = dialog->getSaveFileName(0, QString("Сохранить как..."), QString("./Saves/"), QString("*.csv"));
-    if (fileName != "")
+    file->setFileName(QFileInfo(fileName).absoluteFilePath());
+   /* if (fileName != "")
     {
-        file->setFileName(QFileInfo(fileName).absoluteFilePath());
+        QString newFileName = QFileInfo(fileName).absoluteFilePath();
+        int i = 0;
+        while(QFile(newFileName).exists())
+        {
+            i++;
+            newFileName = QFileInfo(fileName).absoluteFilePath();
+            newFileName.insert((newFileName.size()-4), (tr("(%1)").arg(i)));
+        }
+        //file->setFileName(QFileInfo(fileName).absoluteFilePath());
+        file->setFileName(newFileName);
         if (file->open(QIODevice::WriteOnly))
         {
             QString text = "Дата:;";
@@ -208,6 +218,7 @@ void Dialog::handleSaveButton()
             //TODO: Error message
         }
     }
+    */
     filePathLine->setPlaceholderText(fileName);
     //cout << fileName << endl;
 
@@ -256,6 +267,46 @@ void Dialog::searchDevice()
     }
 }
 
+void Dialog::handleRunButton()
+{
+   file->setFileName(filePathLine->placeholderText());
+    if (file->fileName() != "")
+    {
+        QString newFileName = file->fileName();
+        int i = 0;
+        while(QFile(newFileName).exists())
+        {
+            i++;
+            newFileName = file->fileName();
+            newFileName.insert((newFileName.size()-4), (tr("(%1)").arg(i)));
+        }
+        //file->setFileName(QFileInfo(fileName).absoluteFilePath());
+        file->setFileName(newFileName);
+        if (file->open(QIODevice::WriteOnly))
+        {
+            QString text = "Дата:;";
+            text.append(QDate::currentDate().toString("dd/MM/yy"));
+            text.append("\nВремя:;");
+            text.append(QTime::currentTime().toString());
+            text.append("\nНапряжение,В;Ток,мкА\n");
+            QTextStream out(file);
+            out << text;
+            //file->close();
+        }
+        else
+        {
+            //handleSaveButton();
+            //handleRunButton();
+            return;
+            //TODO: Error message
+        }
+    }else{
+        handleSaveButton();
+        handleRunButton();
+        return;
+    }
+    getValues();
+}
 void Dialog::getValues()
 {
     vol_step->setEnabled(false);
@@ -264,19 +315,19 @@ void Dialog::getValues()
     searchDeviceButton->setEnabled(false);
     progressBar->setMaximum((maxVoltage-minVoltage)/vol_step->value());
     progressBar->setValue(progressBar->value()+1);
-    if (currentVoltage <= maxVoltage)
+    if (currentVoltage >= minVoltage)
     {
         QString *getRequest = new QString;
         getRequest->append("get ");
         getRequest->append(QString::number(currentVoltage));
         getRequest->append("\n");
         writeData(QByteArray (getRequest->toUtf8()));
-        waitTimer->start(1000);
+        waitTimer->start(2000);
         statusLabel->setText("Измерения выполняются");
-        currentVoltage += vol_step->value();
+        currentVoltage -= vol_step->value();
     }else
     {
-        currentVoltage = minVoltage;
+        currentVoltage = maxVoltage;
         waitTimer->stop();
         writeData(QByteArray ("stop\n"));
         statusLabel->setText("Завершено");
@@ -286,6 +337,7 @@ void Dialog::getValues()
         searchDeviceButton->setEnabled(true);
         progressBar->setValue(0);
         file->close();
+        file->setFileName(filePathLine->text());
     }
 }
 
@@ -338,6 +390,7 @@ void Dialog::saveToFile(const QString &s)
     if (!(file->isOpen())) {
         file = new QFile;
         file->setFileName("./probe_results.csv");
+        filePathLine->setPlaceholderText(file->fileName());
         if (file->open(QIODevice::WriteOnly)) {
             QString text = "Дата:;";
             text.append(QDate::currentDate().toString("dd/MM/yy"));
@@ -367,7 +420,7 @@ void Dialog::saveToFile(const QString &s)
     writeString->remove(QChar('\n'), Qt::CaseInsensitive);
     writeString->append(";\n");
     writeString->replace(QChar('.'), QChar(','), Qt::CaseSensitive);
-    cout << *writeString << endl;
+    //cout << *writeString << endl;
     out << *writeString;
     getValues();
 }

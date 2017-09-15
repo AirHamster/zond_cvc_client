@@ -167,6 +167,7 @@ void writeData(const QByteArray &data);
 void readData();
 
 void handleError(QSerialPort::SerialPortError error);
+void handleRunButton();
 };
 //! [0]
 
